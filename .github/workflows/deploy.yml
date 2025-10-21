@@ -1,15 +1,32 @@
-name: Build and deploy to GitHub Pages
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main] # Запускати при push до гілки main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    # ✅ ВИПРАВЛЕНО: Явно встановлюємо дозволи на запис для GITHUB_TOKEN
+    permissions:
+      contents: write # Дозвіл на запис (push) для дії розгортання
+      pages: write # Дозвіл для GitHub Pages
+      id-token: write # Для OIDC автентифікації
+
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2.3.1
+        # ✅ ОНОВЛЕНО: Використовуйте актуальну версію
+        uses: actions/checkout@v4
+        with:
+          # Збільшення глибини історії необхідне для деяких Action
+          fetch-depth: 0
+
+      - name: Setup Node.js ⚙️
+        # Рекомендовано явно встановлювати версію Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Виберіть актуальну LTS версію
 
       - name: Install and build 🔧
         run: |
@@ -17,7 +34,10 @@ jobs:
           npm run build
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.0
+        # ✅ ОНОВЛЕНО: Використовуйте актуальну версію (або actions/deploy-pages@v4)
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
-          folder: dist
+          # ✅ ВИПРАВЛЕНО: Вказуємо, що Action використовує GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages # Гілка, куди будуть розгорнуті зібрані файли
+          folder: dist # Папка, що містить зібрані файли (переконайтеся, що назва правильна, напр., 'build' або 'dist')
